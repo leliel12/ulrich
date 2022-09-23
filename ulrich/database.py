@@ -44,7 +44,9 @@ class TagMixin(ModelABC):
 class ExperimentMixin(ModelABC):
 
     id = sa.Column(sa.Integer, primary_key=True)
-    code = sa.Column(sa.String(30), unique=True, default=shortuuid.uuid, index=True)
+    code = sa.Column(
+        sa.String(30), unique=True, default=shortuuid.uuid, index=True
+    )
     created_at = sa.Column(sa.DateTime, default=dt.datetime.now)
 
     @orm.declared_attr
@@ -80,7 +82,7 @@ class _DBSession(sa.orm.Session):
         return self.db.models
 
     def __repr__(self):
-        return f"<_UlrichDBSession '{self.db!r}'>"
+        return f"<{type(self).__name__} '{self.db!r}'>"
 
 
 class SessionScope(contextlib.AbstractContextManager):
