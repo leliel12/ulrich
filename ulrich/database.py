@@ -1,12 +1,16 @@
 import contextlib
 from collections import OrderedDict
 import datetime as dt
+import os
+from pathlib import Path
 
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext import declarative
 
 import sqlalchemy_file as sa_file
+from libcloud.storage.drivers.local import LocalStorageDriver
+from sqlalchemy_file.storage import StorageManager
 
 import sqlalchemy_utils as sa_utils
 
@@ -129,7 +133,9 @@ class SessionScope(contextlib.AbstractContextManager):
 
 
 class Database:
-    def __init__(self, dburl):
+    def __init__(self, dburl, storage_path):
+
+        # DB initialization
         self.engine = sa.create_engine(dburl, echo=False)
         self.Base = declarative.declarative_base(name="Base", bind=self.engine)
 
@@ -137,6 +143,16 @@ class Database:
         self.session_maker = orm.sessionmaker(
             class_=_DBSession, bind=self.engine, db=self
         )
+
+        # storage init
+        container_name = self.engine.url.database
+        self.storage_path = Path(storage_path)
+
+        os.makedirs(self.storage_path / container_name, 0o777, exist_ok=True)
+
+        self.storage = LocalStorageDriver(str(self.storage_path))
+        container = self.storage.get_container(container_name)
+        StorageManager.add_storage("default", container)
 
     def _create_models(self, Base):
         models = _Models()

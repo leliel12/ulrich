@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 .vscode/
 ulrich_conf.yaml
+test.sqlite3
+_storage/
