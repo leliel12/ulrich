@@ -6,6 +6,8 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext import declarative
 
+import sqlalchemy_file as sa_file
+
 import sqlalchemy_utils as sa_utils
 
 import shortuuid
@@ -15,7 +17,7 @@ import shortuuid
 # =============================================================================
 
 
-class ModelABC:
+class ModelABC(sa_utils.Timestamp):
     @orm.declared_attr
     def id(cls):
         return sa.Column(
@@ -52,6 +54,29 @@ class ExperimentMixin(ModelABC):
     @orm.declared_attr
     def owner(cls):
         return sa.orm.relationship("User", backref="experiments", lazy=False)
+
+
+class Adquisition(ModelABC):
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    metadata_json = sa.Column(sa_file.FileField)
+    swir_data = sa.Column(sa_file.FileField)
+    vnir_data = sa.Column(sa_file.FileField)
+
+    @orm.declared_attr
+    def owner(cls):
+        return sa.orm.relationship(
+            "Experiment", backref="adquisitions", lazy=False
+        )
+
+    def read_metadata(self):
+        raise NotImplementedError()
+
+    def read_swir(self):
+        raise NotImplementedError()
+
+    def read_vnir(self):
+        raise NotImplementedError()
 
 
 # =============================================================================
